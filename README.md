@@ -1,6 +1,5 @@
 <<<<<<< HEAD
 # K8s-Hardway-Installation
-K8s-Hardway Installation
 =======
 # (작성중 현재 아래 적힌 것은 예시로 적어둔 것 입니다.)
 
