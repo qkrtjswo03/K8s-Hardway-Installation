@@ -10,7 +10,9 @@ WORKER_NODES = [
 CERTS_DIR = "/root/hardway/certs"
 DEST_DIR = "/etc/kubernetes"
 SSH_USER = "root"
-SSH_PASSWORD = "CHANGE_ME_SSH_PASSWORD"  # SSH 비밀번호를 설정하세요.
+SSH_PASSWORD = os.environ.get("SSH_PASSWORD")  # 실행 전 export SSH_PASSWORD=... 로 설정
+if not SSH_PASSWORD:
+    raise SystemExit("SSH_PASSWORD 환경 변수를 설정하세요.")
 
 # 전송할 파일 리스트
 SSL_FILES_TO_TRANSFER = [

@@ -87,7 +87,7 @@ flowchart TB
 | Helm / Cilium | `v3.9.4` / `1.15.4` | `cni_setup.py` |
 | CNI plugins | `v1.6.2` | worker 스크립트 |
 
-노드 IP, VIP, 호스트명은 스크립트 상단 상수다. 이 문서는 그 값과 SSH 비밀번호, bootstrap token 원문을 다시 적지 않는다. 공개된 소스에 사설 주소와 평문 비밀번호가 들어 있으므로, 실행 전에 상수를 랩 값으로 바꾼다.
+노드 IP, VIP, 호스트명은 스크립트 상단 상수다. 이 문서는 그 값과 SSH 비밀번호, bootstrap token 원문을 다시 적지 않는다. 실행 전에 주소 상수를 랩 값으로 바꾼다. SSH 비밀번호는 소스에 두지 않고 `SSH_PASSWORD` 환경 변수로 받는다.
 
 ## 디렉터리 구조
 
@@ -122,7 +122,7 @@ flowchart TB
 - etcd `--name`은 해당 머신의 `hostname -s`다. 이 값이 `etcd_setup.py`의 `MASTER_NODES` `name`과 같아야 initial cluster 이름과 맞는다.
 - 바이너리 다운로드 대상은 `storage.googleapis.com`, `github.com/etcd-io/etcd`, `github.com/containernetworking/plugins`, `get.helm.sh`, `helm.cilium.io`다.
 - 컨테이너 런타임 패키지는 worker의 `docker.io`다.
-- SSH 사용자는 `root`다. `main.py`가 원격으로 돌리는 단계(4, 5, 6, 8, 12)는 실행 시 `getpass`로 비밀번호를 받는다. `pcs_setup.py`, `cert_transfer.py`, `cert_create_worker.py`, `cert_sub_worker_node_transfer.py`는 파일 안의 `SSH_PASSWORD` 상수를 쓴다.
+- SSH 사용자는 `root`다. `main.py`가 원격으로 돌리는 단계(4, 5, 6, 8, 12)는 실행 시 `getpass`로 비밀번호를 받는다. `pcs_setup.py`, `cert_transfer.py`, `cert_create_worker.py`, `cert_sub_worker_node_transfer.py`는 `SSH_PASSWORD` 환경 변수를 읽는다.
 
 Bastion 준비 예:
 
@@ -196,7 +196,10 @@ python3 sub_worker_node_setup.py
 
 ## 설정
 
-환경 변수 파일은 없다. 토폴로지를 바꾸려면 같은 의미를 가진 상수를 함께 수정한다.
+토폴로지를 바꾸려면 같은 의미를 가진 상수를 함께 수정한다.
+
+> **비밀 값은 저장소에 넣지 않는다.** `pcs_setup.py`, `cert_transfer.py`, `cert_create_worker.py`, `cert_sub_worker_node_transfer.py`는 SSH 비밀번호를 `os.environ.get("SSH_PASSWORD")`로 읽고, 값이 없으면 바로 종료한다. 실행 전에 Bastion 셸에서 `export SSH_PASSWORD='...'`를 한 번 설정한다(셸 기록에 남기지 않으려면 `read -rs SSH_PASSWORD && export SSH_PASSWORD`).
+> bootstrap token은 `CHANGE_ME_TOKEN_ID.CHANGE_ME_BOOTSTRAP_TOKEN_SECRET` 자리표시자로 되어 있다. `kubeadm token generate` 등으로 `[a-z0-9]{6}.[a-z0-9]{16}` 형식 값을 만들어 아래 세 파일에서 같은 값으로 바꾼다.
 
 | 바꿀 값 | 파일 |
 | --- | --- |
@@ -204,7 +207,7 @@ python3 sub_worker_node_setup.py
 | VIP와 API server URL | `cert_create.py`, `cert_create_worker.py`, `control_plane_setup.py`, `pcs_setup.py`, `sub_worker_node_setup.py` |
 | 호스트명 | `cert_transfer.py`, `cert_create_worker.py`, `etcd_setup.py`, `worker_node_setup.py`. etcd는 추가로 OS `hostname -s` |
 | Corosync `BINDNETADDR`, 노드 이름 `master1`–`master3` | `pcs_setup.py` |
-| SSH 비밀번호 상수 | `pcs_setup.py`, `cert_transfer.py`, `cert_create_worker.py`, `cert_sub_worker_node_transfer.py` |
+| SSH 비밀번호 | `SSH_PASSWORD` 환경 변수 (`pcs_setup.py`, `cert_transfer.py`, `cert_create_worker.py`, `cert_sub_worker_node_transfer.py`가 읽음) |
 | `main.py` 원격 단계의 비밀번호 | 실행 중 `getpass` 입력. 파일에 저장하지 않는다 |
 | bootstrap token | `cert_create_worker.py`, `tls_setup.py`, `sub_worker_node_setup.py` |
 | 클러스터 이름 | `cert_create.py`의 `KUBE_CLUSTER_NAME`, `cert_create_worker.py`의 `CLUSTER_NAME`, `control_plane_setup.py`의 `--cluster-name` |
@@ -236,7 +239,7 @@ Worker 1의 kube-proxy mode는 `iptables`이고 Worker 2·3은 `ipvs`다. `ipset
 스크립트에 보이는 확인 지점은 다음과 같다.
 
 - **`python3 main.py`가 즉시 죽는다.** `paramiko` import 실패다. 위 사전 설치를 Bastion에서 먼저 한다. 메뉴 2번이 `pip install`을 실행하지만, 그 코드는 메뉴가 뜬 뒤에 도달한다.
-- **메뉴 1·3·7·11만 SSH 인증에 실패한다.** 이 네 스크립트는 `getpass` 입력을 쓰지 않고 `SSH_PASSWORD` 상수를 쓴다. 4·5·6·8·12는 `main.py`에 입력한 비밀번호로 `root` 접속한다.
+- **메뉴 1·3·7·11만 SSH 인증에 실패한다.** 이 네 스크립트는 `getpass` 입력을 쓰지 않고 `SSH_PASSWORD` 환경 변수를 쓴다. 변수가 비어 있으면 시작하자마자 종료하고, 값이 틀리면 인증에 실패한다. 4·5·6·8·12는 `main.py`에 입력한 비밀번호로 `root` 접속한다.
 - **etcd가 멤버를 못 찾는다.** `etcd_setup.py`는 `ens33`의 IPv4와 `hostname -s`로 유닛을 만든다. 인터페이스 이름이 다르거나 short hostname이 `MASTER_NODES`의 `name`과 다르면 `--initial-cluster`와 `--name`이 어긋난다. 인증서 파일은 `/etc/ssl/etcd/ssl/ca.crt`, `etcd-server.crt`, `etcd-server.key`다. `control_plane_setup.py`의 apiserver도 etcd 클라이언트 인증서를 이 경로에서 읽는다.
 - **Control plane이 인증서 복사에서 멈춘다.** 복사 원본은 노드의 `/home/ubuntu/hardway/certs`다. 메뉴 3번 `cert_transfer.py`가 Master에 넣어 두는 경로와 같다.
 - **Worker 1이 `필수 파일 누락`으로 끝난다.** `worker_node_setup.py`는 `/home/ubuntu/hardway/certs`에서 `ca.crt`, `<hostname>.crt`, `<hostname>.key`, `kube-proxy.kubeconfig`를 요구하고, 없으면 `FileNotFoundError`를 낸다. `cert_transfer.py`가 worker로 보내는 파일은 `ca.crt`와 `kube-proxy.kubeconfig`뿐이다. 노드 인증서와 노드 kubeconfig는 `cert_create_worker.py`가 `/etc/kubernetes/ssl`과 `/etc/kubernetes/<hostname>.kubeconfig`로 직접 보낸다.

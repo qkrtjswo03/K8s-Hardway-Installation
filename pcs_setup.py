@@ -1,8 +1,11 @@
+import os
 from paramiko import SSHClient, AutoAddPolicy
 
 # 사용자 설정
 SSH_USER = "root"
-SSH_PASSWORD = "CHANGE_ME_SSH_PASSWORD"
+SSH_PASSWORD = os.environ.get("SSH_PASSWORD")  # 실행 전 export SSH_PASSWORD=... 로 설정
+if not SSH_PASSWORD:
+    raise SystemExit("SSH_PASSWORD 환경 변수를 설정하세요.")
 
 # 클러스터 설정
 CLUSTER_NAME = "lbcluster"  # 클러스터 이름

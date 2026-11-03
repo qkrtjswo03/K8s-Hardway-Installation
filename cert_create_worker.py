@@ -15,7 +15,9 @@ LOG_FILE = f"{CERT_DIR}/worker_cert_setup.log"
 CLUSTER_NAME = "minje-k8s-hardway"
 API_SERVER_ADDRESS = "172.31.1.8"
 SSH_USER = "root"
-SSH_PASSWORD = "CHANGE_ME_SSH_PASSWORD"
+SSH_PASSWORD = os.environ.get("SSH_PASSWORD")  # 실행 전 export SSH_PASSWORD=... 로 설정
+if not SSH_PASSWORD:
+    raise SystemExit("SSH_PASSWORD 환경 변수를 설정하세요.")
 
 
 # 로그 작성 함수

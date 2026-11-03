@@ -18,7 +18,9 @@ ALL_NODES = WORKER_NODES + MASTER_NODES
 CERT_DIR = "/root/hardway/certs"
 LOG_FILE = f"{CERT_DIR}/node_cert_transfer.log"
 SSH_USER = "root"
-SSH_PASSWORD = "CHANGE_ME_SSH_PASSWORD"
+SSH_PASSWORD = os.environ.get("SSH_PASSWORD")  # 실행 전 export SSH_PASSWORD=... 로 설정
+if not SSH_PASSWORD:
+    raise SystemExit("SSH_PASSWORD 환경 변수를 설정하세요.")
 
 
 # 로그 작성 함수
