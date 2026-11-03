@@ -8,7 +8,7 @@ LOG_DIR = BASE_DIR
 LOG_FILE = os.path.join(LOG_DIR, "cert_generation.log")
 
 # 클러스터 설정
-KUBE_CLUSTER_NAME = "minje-k8s-hardway"
+KUBE_CLUSTER_NAME = "sunjae-k8s-hardway"
 VIP = "172.31.1.8"  # VIP 변수
 KUBE_API_SERVER_ADDRESS = VIP  # VIP 활용
 KUBECTL_VERSION = "v1.29.7"

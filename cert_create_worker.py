@@ -12,7 +12,7 @@ WORKER_NODES = [
 ]
 CERT_DIR = "/root/hardway/certs"
 LOG_FILE = f"{CERT_DIR}/worker_cert_setup.log"
-CLUSTER_NAME = "minje-k8s-hardway"
+CLUSTER_NAME = "sunjae-k8s-hardway"
 API_SERVER_ADDRESS = "172.31.1.8"
 SSH_USER = "root"
 SSH_PASSWORD = os.environ.get("SSH_PASSWORD")  # 실행 전 export SSH_PASSWORD=... 로 설정

@@ -18,7 +18,24 @@ Bastion 메뉴로 구동하는 Python 스크립트. Kubernetes v1.29.7 control p
 
 다루는 범위는 클러스터 부트스트랩이다. 메트릭·로그 수집 구성은 이 트리에 없다. 구성 요소가 파일 경로, 유닛, 인증서 SAN으로 나뉘어 있어, 노드가 붙지 않을 때 어느 계층인지 스크립트 단위로 따라갈 수 있다.
 
-클러스터 이름은 `minje-k8s-hardway`다. kubeconfig와 `kube-controller-manager`의 `--cluster-name`이 이 문자열을 쓴다.
+클러스터 이름은 `sunjae-k8s-hardway`다. kubeconfig와 `kube-controller-manager`의 `--cluster-name`이 이 문자열을 쓴다.
+
+## 수동 설치 문서
+
+스크립트가 자동화한 절차를 손으로 한 단계씩 따라간 기록은 [`docs/`](docs/README.md)에 있다. Bastion 네트워크 구성부터 PKI, kubeconfig, etcd, 컨트롤 플레인, Worker 조인(수동 인증서 / TLS bootstrap), Cilium·CoreDNS, 통신 테스트까지 12개 장으로 나눴다.
+
+| 장 | 내용 | 대응 스크립트 |
+| --- | --- | --- |
+| [01](docs/01-overview.md) · [02](docs/02-bastion-network.md) | 환경, VM 구성, Bastion NAT·hosts | - |
+| [03](docs/03-certificates.md) · [04](docs/04-kubeconfig.md) · [05](docs/05-apiserver-etcd-sa-certs.md) | CA·클라이언트 인증서, kubeconfig, API/etcd SAN, SA 키 | `cert_create.py` |
+| [06](docs/06-distribute-certs.md) | 인증서·kubeconfig 배포 | `cert_transfer.py` |
+| [07](docs/07-etcd.md) | etcd 3노드 | `etcd_setup.py`, `etcd_verify.py` |
+| [08](docs/08-control-plane.md) | apiserver, controller-manager, scheduler | `control_plane_setup.py` |
+| [09](docs/09-worker01.md) | Worker01 (수동 인증서) | `cert_create_worker.py`, `worker_node_setup.py` |
+| [10](docs/10-cilium-coredns.md) · [11](docs/11-network-test.md) | Cilium, RBAC, CoreDNS, 통신 테스트 | `cni_setup.py` |
+| [12](docs/12-tls-bootstrap-workers.md) | TLS bootstrap으로 Worker02·03 조인 | `tls_setup.py`, `cert_sub_worker_node_transfer.py`, `sub_worker_node_setup.py` |
+
+문서의 비밀번호, 개인 키, bootstrap token은 자리표시자로 바꿨다.
 
 ## 아키텍처
 
@@ -108,6 +125,7 @@ flowchart TB
 ├── tls_setup.py                         # bootstrap token Secret과 CSR RBAC
 ├── cert_sub_worker_node_transfer.py     # Worker 2·3에 ca.crt, kube-proxy.kubeconfig
 ├── sub_worker_node_setup.py             # Worker 2·3 kubelet TLS bootstrap
+├── docs/                                # 수동 설치 문서 (01~12장, images/)
 └── README.md
 ```
 

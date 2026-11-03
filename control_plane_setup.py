@@ -142,7 +142,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \
   --bind-address=0.0.0.0 --cluster-cidr=10.240.0.0/13 --allocate-node-cidrs=true \
-  --cluster-name=minje-k8s-hardway \
+  --cluster-name=sunjae-k8s-hardway \
   --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.crt \
   --cluster-signing-key-file=/etc/kubernetes/ssl/ca.key \
   --kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \
